@@ -22,8 +22,8 @@
     </collision>
     <inertial>
       <origin xyz="0 0 0"/>
-      <mass value="0.1"/>
-      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="0.0"/>
+      <mass value="1.782"/>
+      <inertia ixx="0.0065" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0065"/>
     </inertial>
   </link>
 
@@ -32,7 +32,7 @@
     <child link="r_wr2wp"/>
     <origin rpy="0 0 0" xyz="0 -0.105 0"/>
     <axis xyz="1 0 0"/>
-    <limit effort="100" lower="-1.72" upper="1.72" velocity="100"/>
+    <limit effort="7.2" lower="-6.28" upper="6.28" velocity="11.519173063"/>
   </joint>
 
   <link name="r_wr2wp">
@@ -50,8 +50,8 @@
    </collision>
     <inertial>
       <origin xyz="0 0 0"/>
-      <mass value="0.1"/>
-      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="0.0"/>
+      <mass value="1.782"/>
+      <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0014" iyz="0.0" izz="0.0014"/>
     </inertial>
  </link>
   <joint name="r_waist_pitch" type="revolute">
@@ -59,7 +59,7 @@
     <child link="r_wp2kp"/>
     <origin rpy="0 0 0" xyz="0.08 -0.041 0.00"/>
     <axis xyz="0 1 0"/>
-    <limit effort="100" lower="-1.72" upper="1.72" velocity="100"/>
+     <limit effort="7.2" lower="-6.28" upper="6.28" velocity="11.519173063"/>
   </joint>
 
   <link name="r_wp2kp">
@@ -77,8 +77,8 @@
     </collision>
     <inertial>
       <origin xyz="0 0 0"/>
-      <mass value="0.1"/>
-      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="0.0"/>
+      <mass value="1"/>
+      <inertia ixx="0.0108" ixy="0.0" ixz="0.0" iyy="0.0108" iyz="0.0" izz="0.0"/>
     </inertial>
  </link>
   <joint name="r_knee_pitch" type="revolute">
@@ -86,8 +86,9 @@
     <child link="r_kp2heel"/>
     <origin rpy="0 0 0" xyz="0 0 -0.18"/>
     <axis xyz="0 1 0"/>
-    <limit effort="100" lower="-1.72" upper="1.72" velocity="100"/>
+     <limit effort="7.2" lower="-6.28" upper="6.28" velocity="11.519173063"/>
   </joint>
+  
   <link name="r_kp2heel">
     <visual>
       <origin rpy="0 0 0" xyz="0 0 -0.07"/>
@@ -103,8 +104,8 @@
     </collision>
     <inertial>
       <origin xyz="0 0 0"/>
-      <mass value="0.1"/>
-      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="0.0"/>
+      <mass value="1"/>
+      <inertia ixx="0.0113" ixy="0.0" ixz="0.0" iyy="0.0113" iyz="0.0" izz="0.0"/>
     </inertial>
   </link>
 
@@ -113,7 +114,7 @@
     <child link="l_wr2wp"/>
     <origin rpy="0 0 0" xyz="0 0.105 0"/>
     <axis xyz="1 0 0"/>
-    <limit effort="100" lower="-1.72" upper="1.72" velocity="100"/>
+    <limit effort="7.2" lower="-6.28" upper="6.28" velocity="11.519173063"/>
   </joint>
 
   <link name="l_wr2wp">
@@ -131,8 +132,8 @@
    </collision>
     <inertial>
       <origin xyz="0 0 0"/>
-      <mass value="0.1"/>
-      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="0.0"/>
+      <mass value="1.782"/>
+      <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0014" iyz="0.0" izz="0.0014"/>
     </inertial>
  </link>
   <joint name="l_waist_pitch" type="revolute">
@@ -140,7 +141,7 @@
     <child link="l_wp2kp"/>
     <origin rpy="0 0 0" xyz="0.08 0.041 0.00"/>
     <axis xyz="0 1 0"/>
-    <limit effort="100" lower="-1.72" upper="1.72" velocity="100"/>
+    <limit effort="7.2" lower="-6.28" upper="6.28" velocity="11.519173063"/>
   </joint>
 
   <link name="l_wp2kp">
@@ -158,8 +159,8 @@
     </collision>
     <inertial>
       <origin xyz="0 0 0"/>
-      <mass value="0.1"/>
-      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="0.0"/>
+      <mass value="1"/>
+      <inertia ixx="0.0108" ixy="0.0" ixz="0.0" iyy="0.0108" iyz="0.0" izz="0.0"/>
     </inertial>
  </link>
   <joint name="l_knee_pitch" type="revolute">
@@ -167,8 +168,9 @@
     <child link="l_kp2heel"/>
     <origin rpy="0 0 0" xyz="0 0 -0.18"/>
     <axis xyz="0 1 0"/>
-    <limit effort="100" lower="-1.72" upper="1.72" velocity="100"/>
+    <limit effort="7.2" lower="-6.28" upper="6.28" velocity="11.519173063"/>
   </joint>
+  
   <link name="l_kp2heel">
     <visual>
       <origin rpy="0 0 0" xyz="0 0 -0.07"/>
@@ -184,8 +186,8 @@
     </collision>
     <inertial>
       <origin xyz="0 0 0"/>
-      <mass value="0.1"/>
-      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="0.0"/>
+      <mass value="1"/>
+      <inertia ixx="0.0113" ixy="0.0" ixz="0.0" iyy="0.0113" iyz="0.0" izz="0.0"/>
     </inertial>
  </link>
 
