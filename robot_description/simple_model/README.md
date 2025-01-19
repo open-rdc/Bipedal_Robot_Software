@@ -27,6 +27,6 @@ GIM8108-8 (抜粋)<br>
  - kp to heel: 0.184 [m]
 <br>
 
-注意事項として、ロボットの原点（base_link）は body の中心にあるため、world の原点に合わせて spawn させると、脚が埋まった状態から始まる。問題になる場合は、脚の長さ分、base_link（だけ？）の origin を、z 方向に＋する必要があるだろう。<br>
+~~注意事項として、ロボットの原点（base_link）は body の中心にあるため、world の原点に合わせて spawn させると、脚が埋まった状態から始まる。問題になる場合は、脚の長さ分、base_link（だけ？）の origin を、z 方向に＋する必要があるだろう。~~（解決済み） <br>
 
 ![Gho4AJFbYAAhDS4](https://github.com/user-attachments/assets/b6833fec-134b-431c-afbd-884bc0461e09)
