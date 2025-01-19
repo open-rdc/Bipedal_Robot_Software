@@ -1,0 +1,192 @@
+<?xml version="1.0"?>
+
+<robot name="rdc_biped_robot">
+  <link name="base_link"/>
+  <joint name="base_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="body"/>
+  </joint>
+
+  <link name="body">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="meshes/stl/body.stl" scale="1 1 1"/>
+      </geometry>
+    </visual>
+    <collision>
+       <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>      
+        <mesh filename="meshes/stl/body.stl" scale="1 1 1"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="0.1"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="0.0"/>
+    </inertial>
+  </link>
+
+  <joint name="r_waist_roll" type="revolute">
+    <parent link="body"/>
+    <child link="r_wr2wp"/>
+    <origin rpy="0 0 0" xyz="0 -0.105 0"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="100" lower="-1.72" upper="1.72" velocity="100"/>
+  </joint>
+
+  <link name="r_wr2wp">
+    <visual>
+      <origin rpy="0 0 0" xyz="0.075 0.00 0.00"/>
+      <geometry>
+        <mesh filename="meshes/stl/link_wr2wp_r.stl" scale="1 1 1"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0.075 0.00 0.00"/>
+      <geometry>
+        <mesh filename="meshes/stl/link_wr2wp_r.stl" scale="1 1 1"/>
+      </geometry>
+   </collision>
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="0.1"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="0.0"/>
+    </inertial>
+ </link>
+  <joint name="r_waist_pitch" type="revolute">
+    <parent link="r_wr2wp"/>
+    <child link="r_wp2kp"/>
+    <origin rpy="0 0 0" xyz="0.08 -0.041 0.00"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="100" lower="-1.72" upper="1.72" velocity="100"/>
+  </joint>
+
+  <link name="r_wp2kp">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 -0.09"/>
+      <geometry>
+        <mesh filename="meshes/stl/link_wp2kp.stl" scale="1 1 1"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 -0.09"/>
+      <geometry>
+        <mesh filename="meshes/stl/link_wp2kp.stl" scale="1 1 1"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="0.1"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="0.0"/>
+    </inertial>
+ </link>
+  <joint name="r_knee_pitch" type="revolute">
+    <parent link="r_wp2kp"/>
+    <child link="r_kp2heel"/>
+    <origin rpy="0 0 0" xyz="0 0 -0.18"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="100" lower="-1.72" upper="1.72" velocity="100"/>
+  </joint>
+  <link name="r_kp2heel">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 -0.07"/>
+      <geometry>
+        <mesh filename="meshes/stl/link_kp2heel.stl" scale="1 1 1"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 -0.07"/>
+      <geometry>
+        <mesh filename="meshes/stl/link_kp2heel.stl" scale="1 1 1"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="0.1"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="0.0"/>
+    </inertial>
+  </link>
+
+  <joint name="l_waist_roll" type="revolute">
+    <parent link="body"/>
+    <child link="l_wr2wp"/>
+    <origin rpy="0 0 0" xyz="0 0.105 0"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="100" lower="-1.72" upper="1.72" velocity="100"/>
+  </joint>
+
+  <link name="l_wr2wp">
+    <visual>
+      <origin rpy="0 0 0" xyz="0.075 0.00 0.00"/>
+      <geometry>
+        <mesh filename="meshes/stl/link_wr2wp_l.stl" scale="1 1 1"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0.075 0.00 0.00"/>
+      <geometry>
+        <mesh filename="meshes/stl/link_wr2wp_l.stl" scale="1 1 1"/>
+      </geometry>
+   </collision>
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="0.1"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="0.0"/>
+    </inertial>
+ </link>
+  <joint name="l_waist_pitch" type="revolute">
+    <parent link="l_wr2wp"/>
+    <child link="l_wp2kp"/>
+    <origin rpy="0 0 0" xyz="0.08 0.041 0.00"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="100" lower="-1.72" upper="1.72" velocity="100"/>
+  </joint>
+
+  <link name="l_wp2kp">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 -0.09"/>
+      <geometry>
+        <mesh filename="meshes/stl/link_wp2kp.stl" scale="1 1 1"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 -0.09"/>
+      <geometry>
+        <mesh filename="meshes/stl/link_wp2kp.stl" scale="1 1 1"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="0.1"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="0.0"/>
+    </inertial>
+ </link>
+  <joint name="l_knee_pitch" type="revolute">
+    <parent link="l_wp2kp"/>
+    <child link="l_kp2heel"/>
+    <origin rpy="0 0 0" xyz="0 0 -0.18"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="100" lower="-1.72" upper="1.72" velocity="100"/>
+  </joint>
+  <link name="l_kp2heel">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 -0.07"/>
+      <geometry>
+        <mesh filename="meshes/stl/link_kp2heel.stl" scale="1 1 1"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 -0.07"/>
+      <geometry>
+        <mesh filename="meshes/stl/link_kp2heel.stl" scale="1 1 1"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="0.1"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="0.0"/>
+    </inertial>
+ </link>
+
+</robot>
