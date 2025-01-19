@@ -9,13 +9,13 @@
 
   <link name="body">
     <visual>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0 0 0.364"/>
       <geometry>
         <mesh filename="meshes/stl/body.stl" scale="1 1 1"/>
       </geometry>
     </visual>
     <collision>
-       <origin rpy="0 0 0" xyz="0 0 0"/>
+       <origin rpy="0 0 0" xyz="0 0 0.364"/>
       <geometry>      
         <mesh filename="meshes/stl/body.stl" scale="1 1 1"/>
       </geometry>
@@ -30,7 +30,7 @@
   <joint name="r_waist_roll" type="revolute">
     <parent link="body"/>
     <child link="r_wr2wp"/>
-    <origin rpy="0 0 0" xyz="0 -0.105 0"/>
+    <origin rpy="0 0 0" xyz="0 -0.105 0.364"/>
     <axis xyz="1 0 0"/>
     <limit effort="7.2" lower="-6.28" upper="6.28" velocity="11.519173063"/>
   </joint>
@@ -112,7 +112,7 @@
   <joint name="l_waist_roll" type="revolute">
     <parent link="body"/>
     <child link="l_wr2wp"/>
-    <origin rpy="0 0 0" xyz="0 0.105 0"/>
+    <origin rpy="0 0 0" xyz="0 0.105 0.364"/>
     <axis xyz="1 0 0"/>
     <limit effort="7.2" lower="-6.28" upper="6.28" velocity="11.519173063"/>
   </joint>
