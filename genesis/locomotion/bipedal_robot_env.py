@@ -1,3 +1,6 @@
+# This program was created with reference to the example code of Genesis.
+# https://github.com/Genesis-Embodied-AI/Genesis
+
 import torch
 import math
 import genesis as gs
