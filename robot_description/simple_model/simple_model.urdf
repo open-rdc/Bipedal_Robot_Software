@@ -113,7 +113,7 @@
     <child link="r_heel2end"/>
     <origin rpy="0 0 0" xyz="-0.164"/>
   </joint>
-  <link>
+  <link name="r_heel2end">
      <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
@@ -220,7 +220,7 @@
     <child link="l_heel2end"/>
     <origin rpy="0 0 0" xyz="-0.164"/>
   </joint>
-  <link>
+  <link name="heel2end">
      <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
