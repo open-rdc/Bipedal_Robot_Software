@@ -32,7 +32,7 @@
     <child link="r_wr2wp"/>
     <origin rpy="0 0 0" xyz="0 -0.105 0.364"/>
     <axis xyz="1 0 0"/>
-    <limit effort="7.2" lower="2.35" upper="3.92" velocity="11.519173063"/>
+    <limit effort="7.2" lower="-3.14" upper="0" velocity="11.519173063"/>
   </joint>
 
   <link name="r_wr2wp">
@@ -88,7 +88,7 @@
     <child link="r_kp2heel"/>
     <origin rpy="0 0 0" xyz="0 0 -0.18"/>
     <axis xyz="0 1 0"/>
-    <limit effort="7.2" lower="-3.14" upper="-1.57" velocity="11.519173063"/>
+    <limit effort="7.2" lower="1.57" upper="4.71" velocity="11.519173063"/>
   </joint>
 
   <link name="r_kp2heel">
@@ -143,7 +143,7 @@
     <child link="l_wr2wp"/>
     <origin rpy="0 0 0" xyz="0 0.105 0.364"/>
     <axis xyz="1 0 0"/>
-    <limit effort="7.2" lower="-0.78" upper="0.78" velocity="11.519173063"/>
+    <limit effort="7.2" lower="-3.14" upper="0" velocity="11.519173063"/>
   </joint>
 
   <link name="l_wr2wp">
@@ -199,7 +199,7 @@
     <child link="l_kp2heel"/>
     <origin rpy="0 0 0" xyz="0 0 -0.18"/>
     <axis xyz="0 1 0"/>
-    <limit effort="7.2" lower="-3.14" upper="-1.57" velocity="11.519173063"/>
+    <limit effort="7.2" lower="1.57" upper="4.71" velocity="11.519173063"/>
   </joint>
 
   <link name="l_kp2heel">
