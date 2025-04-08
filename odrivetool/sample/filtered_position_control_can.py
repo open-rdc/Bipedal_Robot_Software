@@ -21,15 +21,18 @@ bus = can.interface.Bus(channel='can0', interface='socketcan')  # 'can0' は正�
 def send_can_cmd(arbitration_id, data_bytes):
     msg = can.Message(arbitration_id=arbitration_id, data=data_bytes, is_extended_id=False)
     bus.send(msg)
+    print(msg)
     time.sleep(0.05)
 
-# ステップ①: 状態をCLOSED_LOOP_CONTROL（8）に設定
-send_can_cmd(CAN_ID_SET_AXIS_STATE, [8, 0, 0, 0, 0, 0, 0, 0])
-print("[CAN] Sent: Set_Axis_State -> CLOSED_LOOP_CONTROL (8)")
-
-# ステップ②: 制御モード設定（Control_Mode=3, Input_Mode=3）
-send_can_cmd(CAN_ID_SET_CTRL_MODE, [3, 3, 0, 0, 0, 0, 0, 0])
+# 制御モード設定（Control_Mode=3, Input_Mode=3）
+send_can_cmd(CAN_ID_SET_CTRL_MODE, [3, 0, 0, 0, 3, 0, 0, 0])
 print("[CAN] Sent: Set_Controller_Mode -> Position, Filtered Input")
+time.sleep(1.0)
+
+# 状態をCLOSED_LOOP_CONTROL（8）に設定
+send_can_cmd(CAN_ID_SET_AXIS_STATE, [8, 0, 0, 0, 0, 0, 0, 0])
+print("[CAN] Sent: Set_Axis_State -> CLOSED_LOOP_CONTROL (8)")  
+time.sleep(1.0)
 
 # === Pygame初期化 ===
 pygame.init()
