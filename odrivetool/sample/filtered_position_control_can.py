@@ -2,6 +2,8 @@ import can
 import time
 import pygame
 import struct
+import signal
+import sys
 
 # === 設定 ===
 #NODE_ID = 0x00  # ドライバのNode ID（必要に応じて変更） ID = 0
@@ -39,6 +41,17 @@ pygame.init()
 screen = pygame.display.set_mode((300, 100))
 pygame.display.set_caption("GIM8108-8 Position Control")
 
+# Ctrl+Cなどの例外処理
+def signal_handler(sig, frame):
+    print('Exiting...')
+    # odrv0.axis0.requested_state = 1
+    # プログラムが途中で止まった際に設定するコード
+    send_can_cmd(CAN_ID_SET_AXIS_STATE, [1, 0, 0, 0, 0, 0, 0, 0])
+    pygame.quit()
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
+
 current_position = 0.0
 running = True
 clock = pygame.time.Clock()
@@ -65,12 +78,12 @@ while running:
     keys = pygame.key.get_pressed()
 
     if keys[pygame.K_UP]:
-        current_position += 0.5
+        current_position += 1.0
         send_position(current_position)
         time.sleep(0.1)
 
     elif keys[pygame.K_DOWN]:
-        current_position -= 0.5
+        current_position -= 1.0
         send_position(current_position)
         time.sleep(0.1)
 
