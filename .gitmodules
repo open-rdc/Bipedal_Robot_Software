@@ -1,0 +1,4 @@
+[submodule "controller/raspi/ros2/ROS2_Walking_Pattern_Generator"]
+	path = controller/raspi/ros2/ROS2_Walking_Pattern_Generator
+	url = git@github.com:open-rdc/ROS2_Walking_Pattern_Generator.git
+	branch = rdc_bipedal
