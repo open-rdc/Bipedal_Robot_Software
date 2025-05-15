@@ -19,7 +19,7 @@
 #define CAN_ID_SET_CTRL_MODE  ((NODE_ID << 5) + CMD_ID_SET_CTRL_MODE)
 #define CAN_ID_SET_INPUT_POS  ((NODE_ID << 5) + CMD_ID_SET_INPUT_POS)
 
-#define VEL_FF_FIXED 1000  // int16 scaling (0.5 * 1000)
+#define VEL_FF_FIXED 500  // int16 scaling (0.5 * 1000)
 #define TORQUE_FF_FIXED 500  // int16 scaling (0.5 * 1000)
 
 int sock;
@@ -96,7 +96,7 @@ int main(void) {
     signal(SIGINT, signal_handler);
 
     // 制御モード設定（Control_Mode=3, Input_Mode=3）
-    uint8_t ctrl_mode_data[8] = {3, 0, 0, 0, 1, 0, 0, 0};
+    uint8_t ctrl_mode_data[8] = {3, 0, 0, 0, 3, 0, 0, 0};
     send_can_cmd(CAN_ID_SET_CTRL_MODE, ctrl_mode_data, 8);
     sleep(1);
 
