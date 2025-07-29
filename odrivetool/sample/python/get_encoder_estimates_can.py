@@ -6,7 +6,7 @@ import signal
 import sys
 
 # === 設定 ===
-NODE_ID = 0x02
+NODE_ID = 0x00
 CMD_ID_SET_AXIS_STATE = 0x007
 CMD_ID_GET_ENCODER_ESTIMATES = 0x09  # Get Encoder Estimates
 
@@ -14,7 +14,7 @@ CAN_ID_SET_AXIS_STATE = (NODE_ID << 5) + CMD_ID_SET_AXIS_STATE
 CAN_ID_GET_ENCODER_ESTIMATES = (NODE_ID << 5) + CMD_ID_GET_ENCODER_ESTIMATES
 
 # CANインターフェースを設定
-bus = can.interface.Bus("can0", bustype="socketcan")
+bus = can.interface.Bus("can0", interface="socketcan")
 
 # === 初期化関数 ===
 def send_can_cmd(arbitration_id, data_bytes):
@@ -48,3 +48,5 @@ while True:
         # print(f"Encoder position: {pos:.3f} turns, velocity: {vel:.3f} turns/s")
         print(f"Encoder position: {pos:.3f} turns, velocity: {vel:.3f} turns/s")
         print(f"Encoder position: {pos*(360/8):.3f} °, velocity: {vel*(360/8):.3f} °/s")
+
+# メモ　一度閉ループをしないとエンコーダの値を読み取れない
