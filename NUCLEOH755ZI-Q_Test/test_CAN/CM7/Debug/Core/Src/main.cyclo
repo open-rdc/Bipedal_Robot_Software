@@ -1,0 +1,14 @@
+../Core/Src/main.c:108:5:main	7
+../Core/Src/main.c:264:6:SystemClock_Config	4
+../Core/Src/main.c:324:13:MX_FDCAN1_Init	6
+../Core/Src/main.c:405:13:MX_FDCAN2_Init	6
+../Core/Src/main.c:489:13:MX_GPIO_Init	1
+../Core/Src/main.c:548:6:HAL_FDCAN_RxFifo0Callback	8
+../Core/Src/main.c:590:6:HAL_FDCAN_RxFifo1Callback	5
+../Core/Src/main.c:622:6:BSP_PB_Callback	2
+../Core/Src/main.c:634:6:Error_Handler	1
+../Core/Src/main.c:651:6:send_can_cmd	3
+../Core/Src/main.c:676:6:send_CLOSED_LOOP_CONTROL	1
+../Core/Src/main.c:690:6:send_IDLE	1
+../Core/Src/main.c:703:6:send_Control_Mode	1
+../Core/Src/main.c:715:6:send_position	1
