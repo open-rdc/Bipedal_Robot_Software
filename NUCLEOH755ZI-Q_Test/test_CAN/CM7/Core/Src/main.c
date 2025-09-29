@@ -27,7 +27,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+# include "ODrive.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -42,14 +42,8 @@
 #define HSEM_ID_0 (0U) /* HW semaphore 0*/
 #endif
 
+// モータのID
 #define NODE_ID 0x00
-#define CMD_ID_SET_AXIS_STATE 0x007
-#define CMD_ID_SET_CTRL_MODE  0x00B
-#define CMD_ID_SET_INPUT_POS  0x00C
-
-#define CAN_ID_SET_AXIS_STATE ((NODE_ID << 5) + CMD_ID_SET_AXIS_STATE)
-#define CAN_ID_SET_CTRL_MODE  ((NODE_ID << 5) + CMD_ID_SET_CTRL_MODE)
-#define CAN_ID_SET_INPUT_POS  ((NODE_ID << 5) + CMD_ID_SET_INPUT_POS)
 
 #define VEL_FF_FIXED 500  // int16 scaling (0.5 * 1000)
 #define TORQUE_FF_FIXED 500  // int16 scaling (0.5 * 1000)
@@ -63,8 +57,8 @@
 
 /* Private variables ---------------------------------------------------------*/
 
-COM_InitTypeDef BspCOMInit;
-__IO uint32_t BspButtonState = BUTTON_RELEASED;
+//COM_InitTypeDef BspCOMInit;
+//__IO uint32_t BspButtonState = BUTTON_RELEASED;
 
 FDCAN_HandleTypeDef hfdcan1; // 使用するFDCANのハンドル
 FDCAN_HandleTypeDef hfdcan2;
@@ -76,6 +70,7 @@ FDCAN_TxHeaderTypeDef TxHeader1;
 FDCAN_RxHeaderTypeDef RxHeader1;
 FDCAN_TxHeaderTypeDef TxHeader2;
 FDCAN_RxHeaderTypeDef RxHeader2;
+
 uint8_t TxData1[8];
 uint8_t RxData1[8];
 uint8_t TxData2[8];
@@ -87,11 +82,12 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_FDCAN1_Init(void);
 static void MX_FDCAN2_Init(void);
-void send_Control_Mode();
-void send_CLOSED_LOOP_CONTROL();
-void send_position(float pos);
-void send_can_cmd(uint16_t id, uint8_t *data, uint8_t len);
-void send_IDLE();
+
+//void send_Control_Mode();
+//void send_CLOSED_LOOP_CONTROL();
+//void send_position(float pos);
+//void send_can_cmd(uint16_t id, uint8_t *data, uint8_t len);
+//void send_IDLE();
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -193,18 +189,47 @@ Error_Handler();
   BSP_LED_Off(LED_RED);
   /* USER CODE END BSP */
 
-  send_IDLE();
-  HAL_Delay(2000);
-  send_Control_Mode();
-  HAL_Delay(2000);
-  send_CLOSED_LOOP_CONTROL();
-  HAL_Delay(2000);
-  float positions[] = {0.0, 45.0, 90.0, 135.0, 180.0};
-  int pos_count = sizeof(positions) / sizeof(positions[0]);
+  //send_IDLE();
+  //HAL_Delay(2000);
+  //send_Control_Mode();
+  //HAL_Delay(2000);
+  //send_CLOSED_LOOP_CONTROL();
+  //HAL_Delay(2000);
+  //float positions[] = {0.0, 45.0, 90.0, 135.0, 180.0};
+  //int pos_count = sizeof(positions) / sizeof(positions[0]);
 
+  / FDCANを開始
+  if (HAL_FDCAN_Start(&hfdcan1) != HAL_OK)
+  {
+      Error_Handler();
+  }
+  if (HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK)
+  {
+      Error_Handler();
+  }
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+  // --- 新しいドライバを使用したODriveコマンドシーケンス ---
+  HAL_Delay(1000); // 起動待機
+
+  // 1. ODriveをIDLE状態に設定
+  ODrive_SetAxisState(&hfdcan1, NODE_ID, ODRIVE_AXIS_STATE_IDLE);
+  HAL_Delay(1000);
+
+  // 2. 制御モードと入力モードを設定
+  ODrive_SetControllerModes(&hfdcan1, NODE_ID, ODRIVE_CONTROL_MODE_POSITION_CONTROL, ODRIVE_INPUT_MODE_POS_FILTER);
+  HAL_Delay(1000);
+  
+  // 3. CLOSED LOOP CONTROL状態へ移行
+  ODrive_SetAxisState(&hfdcan1, NODE_ID, ODRIVE_AXIS_STATE_CLOSED_LOOP_CONTROL);
+  HAL_Delay(1000);
+  
+  // 制御する目標位置の配列 (度単位)
+  float positions_degree[] = {0.0, 45.0, 90.0, 135.0, 180.0};
+  int pos_count = sizeof(positions_degree) / sizeof(positions_degree[0]);
+
   while (1)
   {
 
@@ -239,9 +264,10 @@ Error_Handler();
     */
 
     for (int i = 0; i < pos_count; i++) {
+      // ODriveは位置を"turns"単位で受け取るため、度をターンに変換
       float pos = positions[i] * (8.0f / 360.0f);
       //printf("Sending position: %f\n", pos);
-      send_position(pos);
+      ODrive_SetInputPos(&hfdcan1, NODE_ID, pos_in_turns, VEL_FF_FIXED, TORQUE_FF_FIXED);
       HAL_Delay(2000);
     }
     
@@ -647,83 +673,6 @@ void Error_Handler(void)
   /* USER CODE END Error_Handler_Debug */
 }
 
-//CANメッセージ送信関数
-void send_can_cmd(uint16_t id, uint8_t *data, uint8_t len) {
-    FDCAN_TxHeaderTypeDef TxHeader1;
-    TxHeader1.Identifier = id; //0x123 static void MX_FDCAN1_Init(void)で0x123に固定されているかも
-    TxHeader1.IdType = FDCAN_STANDARD_ID;
-    TxHeader1.TxFrameType = FDCAN_DATA_FRAME;
-    TxHeader1.DataLength = FDCAN_DLC_BYTES_8;
-    TxHeader1.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
-    TxHeader1.BitRateSwitch = FDCAN_BRS_OFF;
-    TxHeader1.FDFormat = FDCAN_CLASSIC_CAN;
-    TxHeader1.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
-    TxHeader1.MessageMarker = 0;
-
-    if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader1, data) != HAL_OK) {
-        Error_Handler();
-    } else {
-        printf("[CAN] Sent: ID=0x%03X Data=", id);
-        for (int i = 0; i < len; i++) {
-            printf("%02X ", data[i]);
-        }
-        printf("\n");
-    }
-    HAL_Delay(50);
-}
-
-// 状態をCLOSED_LOOP_CONTROLに設定
-void send_CLOSED_LOOP_CONTROL() {
-  //uint8_t test_data[8] = {0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-  TxData1[0] = 0x08;
-  TxData1[1] = 0x00;
-  TxData1[2] = 0x00;
-  TxData1[3] = 0x00;
-  TxData1[4] = 0x00;
-  TxData1[5] = 0x00;
-  TxData1[6] = 0x00;
-  TxData1[7] = 0x00;
-  send_can_cmd(0x007, TxData1, 8); // 0x123はCANのID
-}
-
-// アイドル状態に設定
-void send_IDLE() {
-  TxData1[0] = 0x01;
-  TxData1[1] = 0x00;
-  TxData1[2] = 0x00;
-  TxData1[3] = 0x00;
-  TxData1[4] = 0x00;
-  TxData1[5] = 0x00;
-  TxData1[6] = 0x00;
-  TxData1[7] = 0x00;
-  send_can_cmd(0x007, TxData1, 8); // 0x123はCANのID
-}
-
-// 制御モード設定（Control_Mode=3, Input_Mode=3）
-void send_Control_Mode(){
-  TxData1[0] = 0x03;
-  TxData1[1] = 0x00;
-  TxData1[2] = 0x00;
-  TxData1[3] = 0x00;
-  TxData1[4] = 0x03;
-  TxData1[5] = 0x00;
-  TxData1[6] = 0x00;
-  TxData1[7] = 0x00;
-  send_can_cmd(0x007, TxData1, 8); // 0x123はCANのID
-}
-
-void send_position(float pos) {
-  uint8_t TxData1[8];
-  memcpy(TxData1, &pos, 4);  // Little-endian float to 4 bytes
-
-  TxData1[4] = (VEL_FF_FIXED & 0xFF);
-  TxData1[5] = (VEL_FF_FIXED >> 8) & 0xFF;
-  TxData1[6] = (TORQUE_FF_FIXED & 0xFF);
-  TxData1[7] = (TORQUE_FF_FIXED >> 8) & 0xFF;
-
-  send_can_cmd(CAN_ID_SET_INPUT_POS, TxData1, 8);
-  //printf("[CAN] Sent position: %.2f (vel_ff=0.5, torque_ff=0.5)\n", pos);
-}
 
 #ifdef  USE_FULL_ASSERT
 /**
