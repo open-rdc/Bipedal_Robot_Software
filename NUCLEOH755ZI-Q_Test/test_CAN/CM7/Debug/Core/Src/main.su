@@ -1,0 +1,9 @@
+../Core/Src/main.c:104:5:main	80	static
+../Core/Src/main.c:290:6:SystemClock_Config	120	static
+../Core/Src/main.c:350:13:MX_FDCAN1_Init	40	static
+../Core/Src/main.c:431:13:MX_FDCAN2_Init	40	static
+../Core/Src/main.c:515:13:MX_GPIO_Init	48	static
+../Core/Src/main.c:574:6:HAL_FDCAN_RxFifo0Callback	24	static
+../Core/Src/main.c:616:6:HAL_FDCAN_RxFifo1Callback	16	static
+../Core/Src/main.c:648:6:BSP_PB_Callback	16	static
+../Core/Src/main.c:660:6:Error_Handler	8	static,ignoring_inline_asm

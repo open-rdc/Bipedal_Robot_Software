@@ -195,7 +195,7 @@ Error_Handler();
   //HAL_Delay(2000);
   //send_CLOSED_LOOP_CONTROL();
   //HAL_Delay(2000);
-  //float positions[] = {0.0, 45.0, 90.0, 135.0, 180.0};
+  float positions[] = {0.0, 45.0, 90.0, 135.0, 180.0};
   //int pos_count = sizeof(positions) / sizeof(positions[0]);
 
   // FDCANを開始
@@ -265,7 +265,7 @@ Error_Handler();
 
     for (int i = 0; i < pos_count; i++) {
       // ODriveは位置を"turns"単位で受け取るため、度をターンに変換
-      float pos = positions[i] * (8.0f / 360.0f);
+      float pos_in_turns = positions[i] * (8.0f / 360.0f);
       //printf("Sending position: %f\n", pos);
       ODrive_SetInputPos(&hfdcan1, NODE_ID, pos_in_turns, VEL_FF_FIXED, TORQUE_FF_FIXED);
       HAL_Delay(2000);
