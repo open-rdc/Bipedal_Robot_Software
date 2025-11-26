@@ -14,6 +14,8 @@ RM := rm -rf
 -include Core/Startup/subdir.mk
 -include Core/Src/subdir.mk
 -include Core/ODrive/subdir.mk
+-include Core/.metadata/.plugins/org.eclipse.cdt.managedbuilder.core/subdir.mk
+-include Core/.metadata/.plugins/org.eclipse.cdt.make.core/subdir.mk
 -include Common/Src/subdir.mk
 -include objects.mk
 
@@ -63,8 +65,8 @@ all: main-build
 main-build: test_CAN_CM7.elf secondary-outputs
 
 # Tool invocations
-test_CAN_CM7.elf test_CAN_CM7.map: $(OBJS) $(USER_OBJS) /home/harukiogawa/RDCLab/NUCLEOH755ZI-Q_Test/test_CAN/CM7/STM32H755ZITX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "test_CAN_CM7.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"/home/harukiogawa/RDCLab/NUCLEOH755ZI-Q_Test/test_CAN/CM7/STM32H755ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="test_CAN_CM7.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+test_CAN_CM7.elf test_CAN_CM7.map: $(OBJS) $(USER_OBJS) /home/icart/Git_Clone/Bipedal_Robot_Software/NUCLEOH755ZI-Q_Test/test_CAN/CM7/STM32H755ZITX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "test_CAN_CM7.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"/home/icart/Git_Clone/Bipedal_Robot_Software/NUCLEOH755ZI-Q_Test/test_CAN/CM7/STM32H755ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="test_CAN_CM7.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

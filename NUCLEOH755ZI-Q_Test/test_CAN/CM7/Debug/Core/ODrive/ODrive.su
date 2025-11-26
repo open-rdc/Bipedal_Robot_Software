@@ -1,0 +1,4 @@
+../Core/ODrive/ODrive.c:49:13:ODrive_SendCANMessage	64	static
+../Core/ODrive/ODrive.c:78:6:ODrive_SetAxisState	32	static
+../Core/ODrive/ODrive.c:92:6:ODrive_SetControllerModes	40	static
+../Core/ODrive/ODrive.c:110:6:ODrive_SetInputPos	40	static

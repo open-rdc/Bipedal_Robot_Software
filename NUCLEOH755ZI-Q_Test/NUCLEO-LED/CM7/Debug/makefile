@@ -62,8 +62,8 @@ all: main-build
 main-build: NUCLEO-LED_CM7.elf secondary-outputs
 
 # Tool invocations
-NUCLEO-LED_CM7.elf NUCLEO-LED_CM7.map: $(OBJS) $(USER_OBJS) /home/harukiogawa/RDCLab/NUCLEOH755ZI-Q_Test/NUCLEO-LED/CM7/STM32H755ZITX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "NUCLEO-LED_CM7.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"/home/harukiogawa/RDCLab/NUCLEOH755ZI-Q_Test/NUCLEO-LED/CM7/STM32H755ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="NUCLEO-LED_CM7.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+NUCLEO-LED_CM7.elf NUCLEO-LED_CM7.map: $(OBJS) $(USER_OBJS) /home/icart/Git_Clone/Bipedal_Robot_Software/NUCLEOH755ZI-Q_Test/NUCLEO-LED/CM7/STM32H755ZITX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "NUCLEO-LED_CM7.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"/home/icart/Git_Clone/Bipedal_Robot_Software/NUCLEOH755ZI-Q_Test/NUCLEO-LED/CM7/STM32H755ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="NUCLEO-LED_CM7.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

@@ -1,4 +1,6 @@
 "./Common/Src/system_stm32h7xx_dualcore_boot_cm4_cm7.o"
+"./Core/.metadata/.plugins/org.eclipse.cdt.make.core/specs.o"
+"./Core/.metadata/.plugins/org.eclipse.cdt.managedbuilder.core/spec.o"
 "./Core/ODrive/ODrive.o"
 "./Core/Src/main.o"
 "./Core/Src/stm32h7xx_hal_msp.o"

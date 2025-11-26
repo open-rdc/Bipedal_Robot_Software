@@ -57,8 +57,8 @@
 
 /* Private variables ---------------------------------------------------------*/
 
-//COM_InitTypeDef BspCOMInit;
-//__IO uint32_t BspButtonState = BUTTON_RELEASED;
+COM_InitTypeDef BspCOMInit;
+__IO uint32_t BspButtonState = BUTTON_RELEASED;
 
 FDCAN_HandleTypeDef hfdcan1; // 使用するFDCANのハンドル
 FDCAN_HandleTypeDef hfdcan2;
@@ -198,7 +198,7 @@ Error_Handler();
   //float positions[] = {0.0, 45.0, 90.0, 135.0, 180.0};
   //int pos_count = sizeof(positions) / sizeof(positions[0]);
 
-  / FDCANを開始
+  // FDCANを開始
   if (HAL_FDCAN_Start(&hfdcan1) != HAL_OK)
   {
       Error_Handler();
