@@ -1,0 +1,3 @@
+[submodule "MPU6050"]
+	path = GitHub/MPU6050
+	url = https://github.com/leech001/MPU6050
