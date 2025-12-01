@@ -594,6 +594,7 @@ void send_CLOSED_LOOP_CONTROL() {
  TxData1[7] = 0x00;
  send_can_cmd(CAN_ID_SET_AXIS_STATE, TxData1, 8); // 0x123はCANのID
 }
+
 // アイドル状態に設定
 void send_IDLE() {
  TxData1[0] = 0x01;
@@ -618,6 +619,7 @@ void send_Control_Mode(){
  TxData1[7] = 0x00;
  send_can_cmd(CAN_ID_SET_CTRL_MODE, TxData1, 8); // 0x123はCANのID
 }
+
 void send_position(float pos) {
  uint8_t TxData1[8];
  memcpy(TxData1, &pos, 4);  // Little-endian float to 4 bytes
@@ -628,6 +630,7 @@ void send_position(float pos) {
  send_can_cmd(CAN_ID_SET_INPUT_POS, TxData1, 8);
  //printf("[CAN] Sent position: %.2f (vel_ff=0.5, torque_ff=0.5)\n", pos);
 }
+
 #ifdef  USE_FULL_ASSERT
 /**
  * @brief  Reports the name of the source file and the source line number
