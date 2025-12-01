@@ -35,7 +35,7 @@
 #ifndef HSEM_ID_0
 #define HSEM_ID_0 (0U) /* HW semaphore 0*/
 #endif
-#define NODE_ID 0x00
+#define NODE_ID 0x01
 #define CMD_ID_SET_AXIS_STATE 0x007
 #define CMD_ID_SET_CTRL_MODE  0x00B
 #define CMD_ID_SET_INPUT_POS  0x00C
@@ -165,8 +165,8 @@ Error_Handler();
  int pos_count = sizeof(positions) / sizeof(positions[0]);
  /* Infinite loop */
  /* USER CODE BEGIN WHILE */
- while (1)
- {
+// while (1)
+// {
    /* -- Sample board code for User push-button in interrupt mode ---- */
    if (BspButtonState == BUTTON_PRESSED)
    {
@@ -199,7 +199,8 @@ Error_Handler();
      //printf("Sending position: %f\n", pos);
      send_position(pos);
      HAL_Delay(2000);
-   }
+//   }
+   send_IDLE();
 
    HAL_Delay(1000);
    BSP_LED_Off(LED_GREEN);
@@ -590,7 +591,7 @@ void send_CLOSED_LOOP_CONTROL() {
  TxData1[5] = 0x00;
  TxData1[6] = 0x00;
  TxData1[7] = 0x00;
- send_can_cmd(0x027, TxData1, 8); // 0x123はCANのID
+ send_can_cmd(CAN_ID_SET_AXIS_STATE, TxData1, 8); // 0x123はCANのID
 }
 // アイドル状態に設定
 void send_IDLE() {
