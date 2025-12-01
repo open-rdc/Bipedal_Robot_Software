@@ -35,13 +35,10 @@
 #ifndef HSEM_ID_0
 #define HSEM_ID_0 (0U) /* HW semaphore 0*/
 #endif
-#define NODE_ID 0x01
+#define NODE_ID_1 0x01
 #define CMD_ID_SET_AXIS_STATE 0x007
 #define CMD_ID_SET_CTRL_MODE  0x00B
 #define CMD_ID_SET_INPUT_POS  0x00C
-#define CAN_ID_SET_AXIS_STATE ((NODE_ID << 5) + CMD_ID_SET_AXIS_STATE)
-#define CAN_ID_SET_CTRL_MODE  ((NODE_ID << 5) + CMD_ID_SET_CTRL_MODE)
-#define CAN_ID_SET_INPUT_POS  ((NODE_ID << 5) + CMD_ID_SET_INPUT_POS)
 #define VEL_FF_FIXED 500  // int16 scaling (0.5 * 1000)
 #define TORQUE_FF_FIXED 500  // int16 scaling (0.5 * 1000)
 
@@ -70,11 +67,11 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_FDCAN1_Init(void);
 static void MX_FDCAN2_Init(void);
-void send_Control_Mode();
-void send_CLOSED_LOOP_CONTROL();
-void send_position(float pos);
+void send_Control_Mode(uint8_t node_id);
+void send_CLOSED_LOOP_CONTROL(uint8_t node_id);
+void send_position(uint8_t node_id, float pos);
 void send_can_cmd(uint16_t id, uint8_t *data, uint8_t len);
-void send_IDLE();
+void send_IDLE(uint8_t node_id);
 /* USER CODE BEGIN PFP */
 /* USER CODE END PFP */
 /* Private user code ---------------------------------------------------------*/
@@ -156,11 +153,11 @@ Error_Handler();
  BSP_LED_Off(LED_YELLOW);
  BSP_LED_Off(LED_RED);
  /* USER CODE END BSP */
- send_IDLE();
+ send_IDLE(NODE_ID_1);
  HAL_Delay(2000);
- send_Control_Mode();
+ send_Control_Mode(NODE_ID_1);
  HAL_Delay(2000);
- send_CLOSED_LOOP_CONTROL();
+ send_CLOSED_LOOP_CONTROL(NODE_ID_1);
  HAL_Delay(2000);
  float positions[] = {45.0, 90.0};
  int pos_count = sizeof(positions) / sizeof(positions[0]);
@@ -198,7 +195,7 @@ Error_Handler();
    for (int i = 0; i < pos_count; i++) {
      float pos = positions[i] * (8.0f / 360.0f);
      //printf("Sending position: %f\n", pos);
-     send_position(pos);
+     send_position(NODE_ID_1, pos);
      HAL_Delay(5000);
    }
 
@@ -582,7 +579,9 @@ void send_can_cmd(uint16_t id, uint8_t *data, uint8_t len) {
 }
 
 // 状態をCLOSED_LOOP_CONTROLに設定
-void send_CLOSED_LOOP_CONTROL() {
+void send_CLOSED_LOOP_CONTROL(uint8_t node_id) {
+ uint32_t can_id;
+ can_id = ((node_id << 5) + CMD_ID_SET_AXIS_STATE);
  //uint8_t test_data[8] = {0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
  TxData1[0] = 0x08;
  TxData1[1] = 0x00;
@@ -592,11 +591,13 @@ void send_CLOSED_LOOP_CONTROL() {
  TxData1[5] = 0x00;
  TxData1[6] = 0x00;
  TxData1[7] = 0x00;
- send_can_cmd(CAN_ID_SET_AXIS_STATE, TxData1, 8); // 0x123はCANのID
+ send_can_cmd(can_id, TxData1, 8); // 0x123はCANのID
 }
 
 // アイドル状態に設定
-void send_IDLE() {
+void send_IDLE(uint8_t node_id) {
+ uint32_t can_id;
+ can_id = ((node_id << 5) + CMD_ID_SET_AXIS_STATE);
  TxData1[0] = 0x01;
  TxData1[1] = 0x00;
  TxData1[2] = 0x00;
@@ -605,10 +606,13 @@ void send_IDLE() {
  TxData1[5] = 0x00;
  TxData1[6] = 0x00;
  TxData1[7] = 0x00;
- send_can_cmd(CAN_ID_SET_AXIS_STATE, TxData1, 8); // 0x123はCANのID
+ send_can_cmd(can_id, TxData1, 8); // 0x123はCANのID
 }
+
 // 制御モード設定（Control_Mode=3, Input_Mode=3）
-void send_Control_Mode(){
+void send_Control_Mode(uint8_t node_id){
+ uint32_t can_id;
+ can_id = ((node_id << 5) + CMD_ID_SET_CTRL_MODE);
  TxData1[0] = 0x03;
  TxData1[1] = 0x00;
  TxData1[2] = 0x00;
@@ -617,17 +621,19 @@ void send_Control_Mode(){
  TxData1[5] = 0x00;
  TxData1[6] = 0x00;
  TxData1[7] = 0x00;
- send_can_cmd(CAN_ID_SET_CTRL_MODE, TxData1, 8); // 0x123はCANのID
+ send_can_cmd(can_id, TxData1, 8); // 0x123はCANのID
 }
 
-void send_position(float pos) {
+void send_position(uint8_t node_id, float pos) {
+ uint32_t can_id;
+ can_id = ((node_id << 5) + CMD_ID_SET_INPUT_POS);
  uint8_t TxData1[8];
  memcpy(TxData1, &pos, 4);  // Little-endian float to 4 bytes
  TxData1[4] = (VEL_FF_FIXED & 0xFF);
  TxData1[5] = (VEL_FF_FIXED >> 8) & 0xFF;
  TxData1[6] = (TORQUE_FF_FIXED & 0xFF);
  TxData1[7] = (TORQUE_FF_FIXED >> 8) & 0xFF;
- send_can_cmd(CAN_ID_SET_INPUT_POS, TxData1, 8);
+ send_can_cmd(can_id, TxData1, 8);
  //printf("[CAN] Sent position: %.2f (vel_ff=0.5, torque_ff=0.5)\n", pos);
 }
 
