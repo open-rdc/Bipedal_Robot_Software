@@ -44,10 +44,7 @@
 #define CAN_ID_SET_INPUT_POS  ((NODE_ID << 5) + CMD_ID_SET_INPUT_POS)
 #define VEL_FF_FIXED 500  // int16 scaling (0.5 * 1000)
 #define TORQUE_FF_FIXED 500  // int16 scaling (0.5 * 1000)
-//#define MAX_LOGS 100
 
-//static uint16_t sent_ids[MAX_LOGS];
-//static uint16_t id_count = 0;
 /* USER CODE END PD */
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
@@ -165,12 +162,12 @@ Error_Handler();
  HAL_Delay(2000);
  send_CLOSED_LOOP_CONTROL();
  HAL_Delay(2000);
- float positions[] = {0.0};
+ float positions[] = {45.0, 90.0};
  int pos_count = sizeof(positions) / sizeof(positions[0]);
  /* Infinite loop */
  /* USER CODE BEGIN WHILE */
-// while (1)
-// {
+ while (1)
+ {
    /* -- Sample board code for User push-button in interrupt mode ---- */
    if (BspButtonState == BUTTON_PRESSED)
    {
@@ -202,11 +199,9 @@ Error_Handler();
      float pos = positions[i] * (8.0f / 360.0f);
      //printf("Sending position: %f\n", pos);
      send_position(pos);
-     HAL_Delay(2000);
-//   }
-   send_IDLE();
+     HAL_Delay(5000);
+   }
 
-   HAL_Delay(1000);
    BSP_LED_Off(LED_GREEN);
    BSP_LED_Off(LED_YELLOW);
    BSP_LED_Off(LED_RED);
@@ -586,30 +581,6 @@ void send_can_cmd(uint16_t id, uint8_t *data, uint8_t len) {
    HAL_Delay(50);
 }
 
-/*
-void send_can_cmd(uint16_t id, uint8_t *data, uint8_t len) {
-    FDCAN_TxHeaderTypeDef TxHeader1;
-    TxHeader1.Identifier = id;
-    TxHeader1.IdType = FDCAN_STANDARD_ID;
-    TxHeader1.TxFrameType = FDCAN_DATA_FRAME;
-    TxHeader1.DataLength = FDCAN_DLC_BYTES_8;
-    TxHeader1.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
-    TxHeader1.BitRateSwitch = FDCAN_BRS_OFF;
-    TxHeader1.FDFormat = FDCAN_CLASSIC_CAN;
-    TxHeader1.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
-    TxHeader1.MessageMarker = 0;
-
-    if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader1, data) != HAL_OK) {
-        Error_Handler();
-    } else {
-        printf("[CAN] Sent: ID=0x%03X\n", id);
-
-        if (id_count < MAX_LOGS) {
-        	printf("[CAN] Sent: ID=0x%03X Data=", id);
-        }
-    }
-}
-*/
 // 状態をCLOSED_LOOP_CONTROLに設定
 void send_CLOSED_LOOP_CONTROL() {
  //uint8_t test_data[8] = {0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
