@@ -44,6 +44,10 @@
 #define CAN_ID_SET_INPUT_POS  ((NODE_ID << 5) + CMD_ID_SET_INPUT_POS)
 #define VEL_FF_FIXED 500  // int16 scaling (0.5 * 1000)
 #define TORQUE_FF_FIXED 500  // int16 scaling (0.5 * 1000)
+//#define MAX_LOGS 100
+
+//static uint16_t sent_ids[MAX_LOGS];
+//static uint16_t id_count = 0;
 /* USER CODE END PD */
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
@@ -149,7 +153,7 @@ Error_Handler();
  }
  /* USER CODE BEGIN BSP */
  /* -- Sample board code to send message over COM1 port ---- */
- printf("Welcome to STM32 world !\n\r");
+ //printf("Welcome to STM32 world !\n\r");
  /* -- Sample board code to switch on leds ---- */
  BSP_LED_Off(LED_GREEN);
  BSP_LED_Off(LED_YELLOW);
@@ -318,7 +322,7 @@ static void MX_FDCAN1_Init(void)
  //HAL_FDCAN_ConfigGlobalFilter(&hfdcan1, FDCAN_REJECT, FDCAN_REJECT, FDCAN_REJECT_REMOTE, FDCAN_REJECT_REMOTE);
  if(HAL_FDCAN_ConfigInterruptLines(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, FDCAN_INTERRUPT_LINE0))
  {
-   printf("Failed Setting Interrupt Line 0");
+   //printf("Failed Setting Interrupt Line 0");
    Error_Handler();
  }
  if(HAL_FDCAN_Start(&hfdcan1) != HAL_OK) Error_Handler();
@@ -391,7 +395,7 @@ static void MX_FDCAN2_Init(void)
    // stm32h7xx_hal_fdcan.c line:4991
  if(HAL_FDCAN_ConfigInterruptLines(&hfdcan2, FDCAN_IT_RX_FIFO1_NEW_MESSAGE, FDCAN_INTERRUPT_LINE1))
  {
-   printf("Failed Setting Interrupt Line 1");
+   //printf("Failed Setting Interrupt Line 1");
    Error_Handler();
  }
  if(HAL_FDCAN_Start(&hfdcan2) != HAL_OK) Error_Handler();
@@ -464,7 +468,7 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)  // can1, can2 で、RxFIFO0とFIFO1を使い分ける感じのほうが良いのか？
 {
-	printf("CB0\n");
+	//printf("CB0\n");
  // if can1
  if((RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) != RESET)
  {
@@ -477,24 +481,24 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
      BSP_LED_On(LED_YELLOW);
      //Num = RxData1[0];
      //printf("CAN1 Rx: %04x\n\r", Num);
-     printf("RxData1: ");
+     //printf("RxData1: ");
      for(int i = 0; i < 8; i++)
      {
-       printf("%02X ", RxData1[i]);
+       //printf("%02X ", RxData1[i]);
      }
-     printf("\n\r");
+     //printf("\n\r");
    }
    else if(RxHeader1.Identifier == 0x007) // 0x007
 	{
 	  BSP_LED_On(LED_YELLOW);
 	  //Num = RxData1[0];
 	  //printf("CAN1 Rx: %04x\n\r", Num);
-     printf("RxData1: ");
+     //printf("RxData1: ");
      for(int i = 0; i < 8; i++)
      {
-       printf("%02X ", RxData1[i]);
+       //printf("%02X ", RxData1[i]);
      }
-     printf("\n\r");
+     //printf("\n\r");
 	}
 	if(HAL_FDCAN_ActivateNotification(hfdcan, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK)
 	{
@@ -504,20 +508,20 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 }
 void HAL_FDCAN_RxFifo1Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo1ITs)
 {
- printf("CB1\n");
+ //printf("CB1\n");
  // if can2
  if((RxFifo1ITs & FDCAN_IT_RX_FIFO1_NEW_MESSAGE) != RESET)
  {
    if(HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO1, &RxHeader2, RxData2) != HAL_OK)
    {
-     printf("Get CAN2 Rx Message");
+     //printf("Get CAN2 Rx Message");
      Error_Handler();
    }
    if(RxHeader2.Identifier == 0x456)
    {
      BSP_LED_On(LED_YELLOW);
      Num = RxData2[0];
-     printf("CAN2 Rx: %04x\n\r", Num);
+     //printf("CAN2 Rx: %04x\n\r", Num);
    }
    if(HAL_FDCAN_ActivateNotification(hfdcan, FDCAN_IT_RX_FIFO1_NEW_MESSAGE, 0) != HAL_OK)
    {
@@ -551,13 +555,14 @@ void Error_Handler(void)
  // if can1
  //printf("ERROR CODE: %08lx\n\r", hfdcan1.ErrorCode);
  // if can2
- printf("ERROR CODE: %08lx\n\r", hfdcan2.ErrorCode);
+ //printf("ERROR CODE: %08lx\n\r", hfdcan2.ErrorCode);
  //while (1)
  //{
  //}
  /* USER CODE END Error_Handler_Debug */
 }
 //CANメッセージ送信関数
+
 void send_can_cmd(uint16_t id, uint8_t *data, uint8_t len) {
    FDCAN_TxHeaderTypeDef TxHeader1;
    TxHeader1.Identifier = id; //0x123 static void MX_FDCAN1_Init(void)で0x123に固定されているかも
@@ -576,10 +581,35 @@ void send_can_cmd(uint16_t id, uint8_t *data, uint8_t len) {
        for (int i = 0; i < len; i++) {
            printf("%02X ", data[i]);
        }
-       printf("\n");
+       printf("\n\r");
    }
    HAL_Delay(50);
 }
+
+/*
+void send_can_cmd(uint16_t id, uint8_t *data, uint8_t len) {
+    FDCAN_TxHeaderTypeDef TxHeader1;
+    TxHeader1.Identifier = id;
+    TxHeader1.IdType = FDCAN_STANDARD_ID;
+    TxHeader1.TxFrameType = FDCAN_DATA_FRAME;
+    TxHeader1.DataLength = FDCAN_DLC_BYTES_8;
+    TxHeader1.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+    TxHeader1.BitRateSwitch = FDCAN_BRS_OFF;
+    TxHeader1.FDFormat = FDCAN_CLASSIC_CAN;
+    TxHeader1.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+    TxHeader1.MessageMarker = 0;
+
+    if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader1, data) != HAL_OK) {
+        Error_Handler();
+    } else {
+        printf("[CAN] Sent: ID=0x%03X\n", id);
+
+        if (id_count < MAX_LOGS) {
+        	printf("[CAN] Sent: ID=0x%03X Data=", id);
+        }
+    }
+}
+*/
 // 状態をCLOSED_LOOP_CONTROLに設定
 void send_CLOSED_LOOP_CONTROL() {
  //uint8_t test_data[8] = {0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
