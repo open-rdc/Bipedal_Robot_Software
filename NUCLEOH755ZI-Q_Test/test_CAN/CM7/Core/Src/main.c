@@ -154,13 +154,13 @@ Error_Handler();
  BSP_LED_Off(LED_YELLOW);
  BSP_LED_Off(LED_RED);
  /* USER CODE END BSP */
-// send_IDLE(NODE_ID_1);
+ send_IDLE(NODE_ID_1);
  send_IDLE(NODE_ID_2);
  HAL_Delay(2000);
-// send_Control_Mode(NODE_ID_1);
+ send_Control_Mode(NODE_ID_1);
  send_Control_Mode(NODE_ID_2);
  HAL_Delay(2000);
-// send_CLOSED_LOOP_CONTROL(NODE_ID_1);
+ send_CLOSED_LOOP_CONTROL(NODE_ID_1);
  send_CLOSED_LOOP_CONTROL(NODE_ID_2);
  HAL_Delay(2000);
  float positions[] = {45.0, 90.0};
@@ -199,7 +199,7 @@ Error_Handler();
    for (int i = 0; i < pos_count; i++) {
      float pos = positions[i] * (8.0f / 360.0f);
      //printf("Sending position: %f\n", pos);
-     //send_position(NODE_ID_1, pos);
+     send_position(NODE_ID_1, pos);
      send_position(NODE_ID_2, pos);
      HAL_Delay(5000);
    }
