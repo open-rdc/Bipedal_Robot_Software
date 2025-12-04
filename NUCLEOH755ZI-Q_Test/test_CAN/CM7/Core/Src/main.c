@@ -165,6 +165,9 @@ Error_Handler();
  HAL_Delay(2000);
  float positions[] = {45.0, 90.0};
  int pos_count = sizeof(positions) / sizeof(positions[0]);
+ // ここに入力位置を入れる
+ float pos1_in_turn = 200.0;
+ float pos2_in_turn = 120.0;
  /* Infinite loop */
  /* USER CODE BEGIN WHILE */
  while (1)
@@ -198,9 +201,12 @@ Error_Handler();
    */
    for (int i = 0; i < pos_count; i++) {
      float pos = positions[i] * (8.0f / 360.0f);
+     float pos1 = pos1_in_turn * (8.0f / 360.0f);
+     float pos2 = pos2_in_turn * (8.0f / 360.0f);
      //printf("Sending position: %f\n", pos);
-     send_position(NODE_ID_1, pos);
-     send_position(NODE_ID_2, pos);
+     send_position(NODE_ID_1, pos1);
+     HAL_Delay(5000);
+     send_position(NODE_ID_2, pos2);
      HAL_Delay(5000);
    }
 
