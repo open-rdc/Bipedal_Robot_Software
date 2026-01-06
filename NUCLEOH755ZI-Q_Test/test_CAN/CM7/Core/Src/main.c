@@ -24,6 +24,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include <string.h>
+#include <stdio.h>
+#include <stdint.h>
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 /* USER CODE END Includes */
@@ -32,9 +34,13 @@
 /* USER CODE END PTD */
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+extern FDCAN_HandleTypeDef hfdcan1;
+extern FDCAN_RxHeaderTypeDef RxHeader1;
+extern uint8_t RxData1[8];
 #ifndef HSEM_ID_0
 #define HSEM_ID_0 (0U) /* HW semaphore 0*/
 #endif
+#define NODE_ID_0 0x00
 #define NODE_ID_1 0x01
 #define NODE_ID_2 0x02
 #define CMD_ID_SET_AXIS_STATE 0x007
@@ -42,7 +48,8 @@
 #define CMD_ID_SET_INPUT_POS  0x00C
 #define VEL_FF_FIXED 500  // int16 scaling (0.5 * 1000)
 #define TORQUE_FF_FIXED 500  // int16 scaling (0.5 * 1000)
-
+#define CMD_ID_GET_ENCODER_ESTIMATES 0x009
+#define CAN_ID_GET_ENCODER_ESTIMATES ((NODE_ID_0 << 5) + CMD_ID_GET_ENCODER_ESTIMATES)
 /* USER CODE END PD */
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
@@ -73,6 +80,8 @@ void send_CLOSED_LOOP_CONTROL(uint8_t node_id);
 void send_position(uint8_t node_id, float pos);
 void send_can_cmd(uint16_t id, uint8_t *data, uint8_t len);
 void send_IDLE(uint8_t node_id);
+void send_get_encoder_estimates(void);
+void example_encoder_request_sequence(void);
 /* USER CODE BEGIN PFP */
 /* USER CODE END PFP */
 /* Private user code ---------------------------------------------------------*/
@@ -154,20 +163,30 @@ Error_Handler();
  BSP_LED_Off(LED_YELLOW);
  BSP_LED_Off(LED_RED);
  /* USER CODE END BSP */
- send_IDLE(NODE_ID_1);
- send_IDLE(NODE_ID_2);
+ send_IDLE(NODE_ID_0);
  HAL_Delay(2000);
- send_Control_Mode(NODE_ID_1);
- send_Control_Mode(NODE_ID_2);
+ //send_IDLE(NODE_ID_1);
+ //HAL_Delay(2000);
+ //send_IDLE(NODE_ID_2);
+ //HAL_Delay(2000);
+ send_Control_Mode(NODE_ID_0);
  HAL_Delay(2000);
- send_CLOSED_LOOP_CONTROL(NODE_ID_1);
- send_CLOSED_LOOP_CONTROL(NODE_ID_2);
+ //send_Control_Mode(NODE_ID_1);
+ //HAL_Delay(2000);
+ //send_Control_Mode(NODE_ID_2);
+ //HAL_Delay(2000);
+ send_CLOSED_LOOP_CONTROL(NODE_ID_0);
  HAL_Delay(2000);
- float positions[] = {45.0, 90.0};
- int pos_count = sizeof(positions) / sizeof(positions[0]);
+ //send_CLOSED_LOOP_CONTROL(NODE_ID_1);
+ //HAL_Delay(2000);
+ //send_CLOSED_LOOP_CONTROL(NODE_ID_2);
+ //HAL_Delay(2000);
+ //float positions[] = {45.0, 90.0};
+ //int pos_count = sizeof(positions) / sizeof(positions[0]);
  // ここに入力位置を入れる
- float pos1_in_turn = 200.0;
- float pos2_in_turn = 120.0;
+ //float pos0_in_turn = 45.0;
+ //float pos1_in_turn = 90.0;
+ //float pos2_in_turn = 135.0;
  /* Infinite loop */
  /* USER CODE BEGIN WHILE */
  while (1)
@@ -199,17 +218,31 @@ Error_Handler();
      //printf("CAN2 Tx: %04x\n\r", Num);
    }
    */
+   /*
    for (int i = 0; i < pos_count; i++) {
-     float pos = positions[i] * (8.0f / 360.0f);
+     //float pos = positions[i] * (8.0f / 360.0f);
+     float pos0 = pos0_in_turn * (8.0f / 360.0f);
      float pos1 = pos1_in_turn * (8.0f / 360.0f);
      float pos2 = pos2_in_turn * (8.0f / 360.0f);
      //printf("Sending position: %f\n", pos);
+     send_position(NODE_ID_0, pos0);
+     //HAL_Delay(1000);
      send_position(NODE_ID_1, pos1);
-     HAL_Delay(5000);
+     //HAL_Delay(1000);
      send_position(NODE_ID_2, pos2);
+     //HAL_Delay(1000);
+     HAL_Delay(5000);
+     send_position(NODE_ID_0, 0);
+     //HAL_Delay(1000);
+     send_position(NODE_ID_1, 0);
+     //HAL_Delay(1000);
+     send_position(NODE_ID_2, 0);
+     //HAL_Delay(1000);
      HAL_Delay(5000);
    }
-
+   */
+   example_encoder_request_sequence();
+   HAL_Delay(5000);
    BSP_LED_Off(LED_GREEN);
    BSP_LED_Off(LED_YELLOW);
    BSP_LED_Off(LED_RED);
@@ -469,45 +502,38 @@ static void MX_GPIO_Init(void)
  /* USER CODE END MX_GPIO_Init_2 */
 }
 /* USER CODE BEGIN 4 */
-void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)  // can1, can2 で、RxFIFO0とFIFO1を使い分ける感じのほうが良いのか？
+void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 {
-	//printf("CB0\n");
- // if can1
- if((RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) != RESET)
- {
-	if(HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &RxHeader1, RxData1) != HAL_OK)
-	{
-	  Error_Handler();
-	}
-	if(RxHeader1.Identifier == 0x007) // 0x123
-   {
-     BSP_LED_On(LED_YELLOW);
-     //Num = RxData1[0];
-     //printf("CAN1 Rx: %04x\n\r", Num);
-     //printf("RxData1: ");
-     for(int i = 0; i < 8; i++)
-     {
-       //printf("%02X ", RxData1[i]);
-     }
-     //printf("\n\r");
-   }
-   else if(RxHeader1.Identifier == 0x007) // 0x007
-	{
-	  BSP_LED_On(LED_YELLOW);
-	  //Num = RxData1[0];
-	  //printf("CAN1 Rx: %04x\n\r", Num);
-     //printf("RxData1: ");
-     for(int i = 0; i < 8; i++)
-     {
-       //printf("%02X ", RxData1[i]);
-     }
-     //printf("\n\r");
-	}
-	if(HAL_FDCAN_ActivateNotification(hfdcan, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK)
-	{
-	  Error_Handler();
-	}
- }
+    //printf("CB0\n");
+    if ((RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) != RESET)
+    {
+        if (HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &RxHeader1, RxData1) != HAL_OK)
+        {
+            Error_Handler();
+        }
+        // Encoder Estimate 応答
+        if (RxHeader1.Identifier == CAN_ID_GET_ENCODER_ESTIMATES)
+        {
+            float pos_est, vel_est;
+            memcpy(&pos_est, &RxData1[0], sizeof(float));
+            memcpy(&vel_est, &RxData1[4], sizeof(float));
+            printf("[Encoder Estimates] Pos: %.3f rev, Vel: %.3f rev/s\n\r", pos_est, vel_est);
+        }
+        // 他のIDの処理（例: 0x007）
+        else if (RxHeader1.Identifier == 0x007)
+        {
+            BSP_LED_On(LED_YELLOW);
+            printf("RxData1: ");
+            for(int i = 0; i < 8; i++) {
+                printf("%02X ", RxData1[i]);
+            }
+            printf("\n");
+        }
+        // 通知再有効化
+        if (HAL_FDCAN_ActivateNotification(hfdcan, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK)
+        {
+            Error_Handler();
+        }
 }
 void HAL_FDCAN_RxFifo1Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo1ITs)
 {
@@ -531,6 +557,7 @@ void HAL_FDCAN_RxFifo1Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo1ITs)
      Error_Handler();
    }
  }
+}
 }
 /* USER CODE END 4 */
 /**
@@ -628,7 +655,7 @@ void send_Control_Mode(uint8_t node_id){
  TxData1[1] = 0x00;
  TxData1[2] = 0x00;
  TxData1[3] = 0x00;
- TxData1[4] = 0x03;
+ TxData1[4] = 0x05;
  TxData1[5] = 0x00;
  TxData1[6] = 0x00;
  TxData1[7] = 0x00;
@@ -646,6 +673,17 @@ void send_position(uint8_t node_id, float pos) {
  TxData1[7] = (TORQUE_FF_FIXED >> 8) & 0xFF;
  send_can_cmd(can_id, TxData1, 8);
  //printf("[CAN] Sent position: %.2f (vel_ff=0.5, torque_ff=0.5)\n", pos);
+}
+
+void send_get_encoder_estimates(void) {
+    uint8_t dummy[8] = {0};
+    send_can_cmd(CAN_ID_GET_ENCODER_ESTIMATES, dummy, 0);  // データ長0で送信
+}
+
+// 任意タイミングで呼び出す（main内など）
+void example_encoder_request_sequence(void) {
+    send_get_encoder_estimates();
+    HAL_Delay(100);  // 応答待ち
 }
 
 #ifdef  USE_FULL_ASSERT
