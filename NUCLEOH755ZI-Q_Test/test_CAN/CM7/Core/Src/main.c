@@ -49,7 +49,10 @@ extern uint8_t RxData1[8];
 #define VEL_FF_FIXED 500  // int16 scaling (0.5 * 1000)
 #define TORQUE_FF_FIXED 500  // int16 scaling (0.5 * 1000)
 #define CMD_ID_GET_ENCODER_ESTIMATES 0x009
-#define CAN_ID_GET_ENCODER_ESTIMATES ((NODE_ID_0 << 5) + CMD_ID_GET_ENCODER_ESTIMATES)
+#define CAN_ID(node_id, cmd_id)   (((node_id) << 5) | (cmd_id))
+#define CAN_ID_GET_ENCODER_ESTIMATES_0  CAN_ID(NODE_ID_0, CMD_ID_GET_ENCODER_ESTIMATES)
+#define CAN_ID_GET_ENCODER_ESTIMATES_1  CAN_ID(NODE_ID_1, CMD_ID_GET_ENCODER_ESTIMATES)
+#define CAN_ID_GET_ENCODER_ESTIMATES_2  CAN_ID(NODE_ID_2, CMD_ID_GET_ENCODER_ESTIMATES)
 /* USER CODE END PD */
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
@@ -80,8 +83,8 @@ void send_CLOSED_LOOP_CONTROL(uint8_t node_id);
 void send_position(uint8_t node_id, float pos);
 void send_can_cmd(uint16_t id, uint8_t *data, uint8_t len);
 void send_IDLE(uint8_t node_id);
-void send_get_encoder_estimates(void);
-void example_encoder_request_sequence(void);
+void send_get_encoder_estimates(uint8_t node_id);
+void request_encoder_estimates(uint8_t node_id);
 /* USER CODE BEGIN PFP */
 /* USER CODE END PFP */
 /* Private user code ---------------------------------------------------------*/
@@ -165,6 +168,12 @@ Error_Handler();
  /* USER CODE END BSP */
  send_IDLE(NODE_ID_0);
  HAL_Delay(2000);
+ while(1){
+	 request_encoder_estimates(NODE_ID_0);
+	 HAL_Delay(1000);
+ }
+ send_IDLE(NODE_ID_0);
+ HAL_Delay(2000);
  //send_IDLE(NODE_ID_1);
  //HAL_Delay(2000);
  //send_IDLE(NODE_ID_2);
@@ -241,7 +250,7 @@ Error_Handler();
      HAL_Delay(5000);
    }
    */
-   example_encoder_request_sequence();
+   //request_encoder_estimates(NODE_ID_0);
    HAL_Delay(5000);
    BSP_LED_Off(LED_GREEN);
    BSP_LED_Off(LED_YELLOW);
@@ -502,39 +511,48 @@ static void MX_GPIO_Init(void)
  /* USER CODE END MX_GPIO_Init_2 */
 }
 /* USER CODE BEGIN 4 */
+
 void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 {
-    //printf("CB0\n");
-    if ((RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) != RESET)
+    if ((RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) != 0U)
     {
         if (HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &RxHeader1, RxData1) != HAL_OK)
         {
             Error_Handler();
         }
-        // Encoder Estimate 応答
-        if (RxHeader1.Identifier == CAN_ID_GET_ENCODER_ESTIMATES)
+
+        if (   RxHeader1.Identifier == CAN_ID_GET_ENCODER_ESTIMATES_0
+            || RxHeader1.Identifier == CAN_ID_GET_ENCODER_ESTIMATES_1
+            || RxHeader1.Identifier == CAN_ID_GET_ENCODER_ESTIMATES_2 )
         {
             float pos_est, vel_est;
             memcpy(&pos_est, &RxData1[0], sizeof(float));
             memcpy(&vel_est, &RxData1[4], sizeof(float));
-            printf("[Encoder Estimates] Pos: %.3f rev, Vel: %.3f rev/s\n\r", pos_est, vel_est);
+
+            uint8_t node_id = (RxHeader1.Identifier >> 5) & 0x07;
+
+            printf("[EncEst][node=%u] Pos: %.3f rev, Vel: %.3f rev/s\n\r",
+                   node_id, pos_est, vel_est);
         }
-        // 他のIDの処理（例: 0x007）
         else if (RxHeader1.Identifier == 0x007)
         {
             BSP_LED_On(LED_YELLOW);
-            printf("RxData1: ");
-            for(int i = 0; i < 8; i++) {
+            for (int i = 0; i < 8; i++) {
                 printf("%02X ", RxData1[i]);
             }
-            printf("\n");
+            printf("\n\r");
         }
-        // 通知再有効化
-        if (HAL_FDCAN_ActivateNotification(hfdcan, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK)
+
+        if (HAL_FDCAN_ActivateNotification(
+                hfdcan, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK)
         {
             Error_Handler();
         }
+    }
 }
+
+
+
 void HAL_FDCAN_RxFifo1Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo1ITs)
 {
  //printf("CB1\n");
@@ -557,7 +575,6 @@ void HAL_FDCAN_RxFifo1Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo1ITs)
      Error_Handler();
    }
  }
-}
 }
 /* USER CODE END 4 */
 /**
@@ -675,16 +692,44 @@ void send_position(uint8_t node_id, float pos) {
  //printf("[CAN] Sent position: %.2f (vel_ff=0.5, torque_ff=0.5)\n", pos);
 }
 
-void send_get_encoder_estimates(void) {
+void send_get_encoder_estimates(uint8_t node_id)
+{
     uint8_t dummy[8] = {0};
-    send_can_cmd(CAN_ID_GET_ENCODER_ESTIMATES, dummy, 0);  // データ長0で送信
+
+    uint32_t can_id;
+    switch (node_id) {
+        case NODE_ID_0: can_id = CAN_ID_GET_ENCODER_ESTIMATES_0; break;
+        case NODE_ID_1: can_id = CAN_ID_GET_ENCODER_ESTIMATES_1; break;
+        case NODE_ID_2: can_id = CAN_ID_GET_ENCODER_ESTIMATES_2; break;
+        default: return; // 不正IDは何もしない
+    }
+
+    send_can_cmd(can_id, dummy, 0);
 }
 
-// 任意タイミングで呼び出す（main内など）
-void example_encoder_request_sequence(void) {
-    send_get_encoder_estimates();
-    HAL_Delay(100);  // 応答待ち
+void request_encoder_estimates(uint8_t node_id)
+{
+    switch (node_id)
+    {
+        case NODE_ID_0:
+            send_can_cmd(CAN_ID_GET_ENCODER_ESTIMATES_0, NULL, 0);
+            break;
+
+        case NODE_ID_1:
+            send_can_cmd(CAN_ID_GET_ENCODER_ESTIMATES_1, NULL, 0);
+            break;
+
+        case NODE_ID_2:
+            send_can_cmd(CAN_ID_GET_ENCODER_ESTIMATES_2, NULL, 0);
+            break;
+
+        default:
+            // 不正な node_id
+            break;
+    }
 }
+
+
 
 #ifdef  USE_FULL_ASSERT
 /**
