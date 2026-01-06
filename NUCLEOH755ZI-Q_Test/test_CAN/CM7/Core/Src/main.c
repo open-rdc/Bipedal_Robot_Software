@@ -73,6 +73,20 @@ uint8_t RxData1[8];
 uint8_t TxData2[8];
 uint8_t RxData2[8];
 /* USER CODE END PV */
+typedef struct {
+    volatile float pos;
+    volatile float vel;
+    volatile uint8_t updated;   // 1: 新しいEncEst受信済み
+} enc_est_t;
+
+static enc_est_t g_enc_est[3];  // NODE_ID_0..2 用
+
+static inline int node_to_index(uint8_t node_id)
+{
+    if (node_id <= 2) return (int)node_id;
+    return -1;
+}
+
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
@@ -83,8 +97,10 @@ void send_CLOSED_LOOP_CONTROL(uint8_t node_id);
 void send_position(uint8_t node_id, float pos);
 void send_can_cmd(uint16_t id, uint8_t *data, uint8_t len);
 void send_IDLE(uint8_t node_id);
-void send_get_encoder_estimates(uint8_t node_id);
-void request_encoder_estimates(uint8_t node_id);
+static void send_get_encoder_estimates(uint8_t node_id);
+static int wait_encoder_estimates(uint8_t node_id, uint32_t timeout_ms);
+int request_encoder_pos_estimates(uint8_t node_id, float *out_pos, uint32_t timeout_ms);
+int request_encoder_vel_estimates(uint8_t node_id, float *out_vel, uint32_t timeout_ms);
 /* USER CODE BEGIN PFP */
 /* USER CODE END PFP */
 /* Private user code ---------------------------------------------------------*/
@@ -168,34 +184,42 @@ Error_Handler();
  /* USER CODE END BSP */
  send_IDLE(NODE_ID_0);
  HAL_Delay(2000);
- while(1){
-	 request_encoder_estimates(NODE_ID_0);
-	 HAL_Delay(1000);
- }
  send_IDLE(NODE_ID_0);
  HAL_Delay(2000);
- //send_IDLE(NODE_ID_1);
- //HAL_Delay(2000);
- //send_IDLE(NODE_ID_2);
- //HAL_Delay(2000);
+ send_IDLE(NODE_ID_1);
+ HAL_Delay(2000);
+ send_IDLE(NODE_ID_2);
+ HAL_Delay(2000);
+ float pos, vel;
+ if (request_encoder_pos_estimates(NODE_ID_0, &pos, 50) == 0 &&
+	 request_encoder_vel_estimates(NODE_ID_0, &vel, 50) == 0)
+ {
+	 printf("[node0] pos=%.3f vel=%.3f\n\r", pos, vel);
+ }
+ else
+ {
+	 printf("[node0] encoder estimate timeout/error\n\r");
+ }
+ while(1){}
+ HAL_Delay(1000);
  send_Control_Mode(NODE_ID_0);
  HAL_Delay(2000);
- //send_Control_Mode(NODE_ID_1);
- //HAL_Delay(2000);
- //send_Control_Mode(NODE_ID_2);
- //HAL_Delay(2000);
+ send_Control_Mode(NODE_ID_1);
+ HAL_Delay(2000);
+ send_Control_Mode(NODE_ID_2);
+ HAL_Delay(2000);
  send_CLOSED_LOOP_CONTROL(NODE_ID_0);
  HAL_Delay(2000);
- //send_CLOSED_LOOP_CONTROL(NODE_ID_1);
- //HAL_Delay(2000);
- //send_CLOSED_LOOP_CONTROL(NODE_ID_2);
- //HAL_Delay(2000);
+ send_CLOSED_LOOP_CONTROL(NODE_ID_1);
+ HAL_Delay(2000);
+ send_CLOSED_LOOP_CONTROL(NODE_ID_2);
+ HAL_Delay(2000);
  //float positions[] = {45.0, 90.0};
  //int pos_count = sizeof(positions) / sizeof(positions[0]);
  // ここに入力位置を入れる
- //float pos0_in_turn = 45.0;
- //float pos1_in_turn = 90.0;
- //float pos2_in_turn = 135.0;
+ float pos0_in_turn = 45.0;
+ float pos1_in_turn = 90.0;
+ float pos2_in_turn = 135.0;
  /* Infinite loop */
  /* USER CODE BEGIN WHILE */
  while (1)
@@ -227,29 +251,39 @@ Error_Handler();
      //printf("CAN2 Tx: %04x\n\r", Num);
    }
    */
-   /*
-   for (int i = 0; i < pos_count; i++) {
+
+   while(1){
+	 if (request_encoder_pos_estimates(NODE_ID_0, &pos, 50) == 0 &&
+		 request_encoder_vel_estimates(NODE_ID_0, &vel, 50) == 0)
+	 {
+		 printf("[node0] pos=%.3f vel=%.3f\n\r", pos, vel);
+	 }
+	 else
+	 {
+		 printf("[node0] encoder estimate timeout/error\n\r");
+	 }
+	 HAL_Delay(1000);
      //float pos = positions[i] * (8.0f / 360.0f);
      float pos0 = pos0_in_turn * (8.0f / 360.0f);
      float pos1 = pos1_in_turn * (8.0f / 360.0f);
      float pos2 = pos2_in_turn * (8.0f / 360.0f);
      //printf("Sending position: %f\n", pos);
      send_position(NODE_ID_0, pos0);
+     HAL_Delay(1000);
+     //send_position(NODE_ID_1, pos1);
      //HAL_Delay(1000);
-     send_position(NODE_ID_1, pos1);
+     //send_position(NODE_ID_2, pos2);
      //HAL_Delay(1000);
-     send_position(NODE_ID_2, pos2);
-     //HAL_Delay(1000);
-     HAL_Delay(5000);
+     //HAL_Delay(5000);
      send_position(NODE_ID_0, 0);
+     HAL_Delay(1000);
+     //send_position(NODE_ID_1, 0);
      //HAL_Delay(1000);
-     send_position(NODE_ID_1, 0);
+     //send_position(NODE_ID_2, 0);
      //HAL_Delay(1000);
-     send_position(NODE_ID_2, 0);
-     //HAL_Delay(1000);
-     HAL_Delay(5000);
+     //HAL_Delay(5000);
    }
-   */
+
    //request_encoder_estimates(NODE_ID_0);
    HAL_Delay(5000);
    BSP_LED_Off(LED_GREEN);
@@ -530,28 +564,24 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
             memcpy(&vel_est, &RxData1[4], sizeof(float));
 
             uint8_t node_id = (RxHeader1.Identifier >> 5) & 0x07;
-
-            printf("[EncEst][node=%u] Pos: %.3f rev, Vel: %.3f rev/s\n\r",
-                   node_id, pos_est, vel_est);
-        }
-        else if (RxHeader1.Identifier == 0x007)
-        {
-            BSP_LED_On(LED_YELLOW);
-            for (int i = 0; i < 8; i++) {
-                printf("%02X ", RxData1[i]);
+            int idx = node_to_index(node_id);
+            if (idx >= 0)
+            {
+                g_enc_est[idx].pos = pos_est;
+                g_enc_est[idx].vel = vel_est;
+                g_enc_est[idx].updated = 1U;
             }
-            printf("\n\r");
+
+            // ISR内printfは重いので、必要なら最小限に（デバッグ時のみ推奨）
+            // printf("[EncEst][node=%u] Pos: %.3f Vel: %.3f\n\r", node_id, pos_est, vel_est);
         }
 
-        if (HAL_FDCAN_ActivateNotification(
-                hfdcan, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK)
+        if (HAL_FDCAN_ActivateNotification(hfdcan, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK)
         {
             Error_Handler();
         }
     }
 }
-
-
 
 void HAL_FDCAN_RxFifo1Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo1ITs)
 {
@@ -624,7 +654,7 @@ void send_can_cmd(uint16_t id, uint8_t *data, uint8_t len) {
    if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader1, data) != HAL_OK) {
        Error_Handler();
    } else {
-       printf("[CAN] Sent: ID=0x%03X Data=", id);
+       //printf("[CAN] Sent: ID=0x%03X Data=", id);
        for (int i = 0; i < len; i++) {
            printf("%02X ", data[i]);
        }
@@ -692,44 +722,61 @@ void send_position(uint8_t node_id, float pos) {
  //printf("[CAN] Sent position: %.2f (vel_ff=0.5, torque_ff=0.5)\n", pos);
 }
 
-void send_get_encoder_estimates(uint8_t node_id)
+static void send_get_encoder_estimates(uint8_t node_id)
 {
     uint8_t dummy[8] = {0};
 
-    uint32_t can_id;
     switch (node_id) {
-        case NODE_ID_0: can_id = CAN_ID_GET_ENCODER_ESTIMATES_0; break;
-        case NODE_ID_1: can_id = CAN_ID_GET_ENCODER_ESTIMATES_1; break;
-        case NODE_ID_2: can_id = CAN_ID_GET_ENCODER_ESTIMATES_2; break;
-        default: return; // 不正IDは何もしない
+        case NODE_ID_0: send_can_cmd(CAN_ID_GET_ENCODER_ESTIMATES_0, dummy, 0); break;
+        case NODE_ID_1: send_can_cmd(CAN_ID_GET_ENCODER_ESTIMATES_1, dummy, 0); break;
+        case NODE_ID_2: send_can_cmd(CAN_ID_GET_ENCODER_ESTIMATES_2, dummy, 0); break;
+        default: break;
     }
-
-    send_can_cmd(can_id, dummy, 0);
 }
 
-void request_encoder_estimates(uint8_t node_id)
+static int wait_encoder_estimates(uint8_t node_id, uint32_t timeout_ms)
 {
-    switch (node_id)
+    int idx = node_to_index(node_id);
+    if (idx < 0) return -1;
+
+    g_enc_est[idx].updated = 0U;
+
+    send_get_encoder_estimates(node_id);
+
+    uint32_t start = HAL_GetTick();
+    while (g_enc_est[idx].updated == 0U)
     {
-        case NODE_ID_0:
-            send_can_cmd(CAN_ID_GET_ENCODER_ESTIMATES_0, NULL, 0);
-            break;
-
-        case NODE_ID_1:
-            send_can_cmd(CAN_ID_GET_ENCODER_ESTIMATES_1, NULL, 0);
-            break;
-
-        case NODE_ID_2:
-            send_can_cmd(CAN_ID_GET_ENCODER_ESTIMATES_2, NULL, 0);
-            break;
-
-        default:
-            // 不正な node_id
-            break;
+        if ((HAL_GetTick() - start) >= timeout_ms)
+            return -2; // timeout
     }
+    return 0; // ok
 }
 
+int request_encoder_pos_estimates(uint8_t node_id, float *out_pos, uint32_t timeout_ms)
+{
+    if (out_pos == NULL) return -1;
+    int idx = node_to_index(node_id);
+    if (idx < 0) return -1;
 
+    int rc = wait_encoder_estimates(node_id, timeout_ms);
+    if (rc != 0) return rc;
+
+    *out_pos = g_enc_est[idx].pos;
+    return 0;
+}
+
+int request_encoder_vel_estimates(uint8_t node_id, float *out_vel, uint32_t timeout_ms)
+{
+    if (out_vel == NULL) return -1;
+    int idx = node_to_index(node_id);
+    if (idx < 0) return -1;
+
+    int rc = wait_encoder_estimates(node_id, timeout_ms);
+    if (rc != 0) return rc;
+
+    *out_vel = g_enc_est[idx].vel;
+    return 0;
+}
 
 #ifdef  USE_FULL_ASSERT
 /**
