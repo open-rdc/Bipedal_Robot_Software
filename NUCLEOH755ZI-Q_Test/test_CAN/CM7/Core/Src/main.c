@@ -46,8 +46,8 @@ extern uint8_t RxData1[8];
 #define CMD_ID_SET_AXIS_STATE 0x007
 #define CMD_ID_SET_CTRL_MODE  0x00B
 #define CMD_ID_SET_INPUT_POS  0x00C
-#define VEL_FF_FIXED 500  // int16 scaling (0.5 * 1000)
-#define TORQUE_FF_FIXED 500  // int16 scaling (0.5 * 1000)
+#define VEL_FF_FIXED 0  // int16 scaling (0.5 * 1000)
+#define TORQUE_FF_FIXED 0  // int16 scaling (0.5 * 1000)
 #define CMD_ID_GET_ENCODER_ESTIMATES 0x009
 #define CAN_ID(node_id, cmd_id)   (((node_id) << 5) | (cmd_id))
 #define CAN_ID_GET_ENCODER_ESTIMATES_0  CAN_ID(NODE_ID_0, CMD_ID_GET_ENCODER_ESTIMATES)
@@ -190,17 +190,17 @@ Error_Handler();
  HAL_Delay(2000);
  send_IDLE(NODE_ID_2);
  HAL_Delay(2000);
- float pos, vel;
- if (request_encoder_pos_estimates(NODE_ID_0, &pos, 50) == 0 &&
-	 request_encoder_vel_estimates(NODE_ID_0, &vel, 50) == 0)
+ float est_pos0;
+ if (request_encoder_pos_estimates(NODE_ID_0, &est_pos0, 50) == 0)
  {
-	 printf("[node0] pos=%.3f vel=%.3f\n\r", pos, vel);
+     printf("[node0] pos=%.3f\n\r", est_pos0);
  }
  else
  {
-	 printf("[node0] encoder estimate timeout/error\n\r");
+     printf("[node0] encoder pos estimate timeout/error\n\r");
  }
- while(1){}
+ HAL_Delay(1000);
+ send_position(NODE_ID_0, est_pos0);
  HAL_Delay(1000);
  send_Control_Mode(NODE_ID_0);
  HAL_Delay(2000);
@@ -217,7 +217,7 @@ Error_Handler();
  //float positions[] = {45.0, 90.0};
  //int pos_count = sizeof(positions) / sizeof(positions[0]);
  // ここに入力位置を入れる
- float pos0_in_turn = 45.0;
+ float pos0_in_turn = 135.0;
  float pos1_in_turn = 90.0;
  float pos2_in_turn = 135.0;
  /* Infinite loop */
@@ -253,30 +253,41 @@ Error_Handler();
    */
 
    while(1){
-	 if (request_encoder_pos_estimates(NODE_ID_0, &pos, 50) == 0 &&
-		 request_encoder_vel_estimates(NODE_ID_0, &vel, 50) == 0)
-	 {
-		 printf("[node0] pos=%.3f vel=%.3f\n\r", pos, vel);
-	 }
-	 else
-	 {
-		 printf("[node0] encoder estimate timeout/error\n\r");
-	 }
-	 HAL_Delay(1000);
+
+	   if (request_encoder_pos_estimates(NODE_ID_0, &est_pos0, 50) == 0)
+	   {
+	       printf("[node0] pos=%.3f\n\r", est_pos0);
+	   }
+	   else
+	   {
+	       printf("[node0] encoder pos estimate timeout/error\n\r");
+	   }
+
+	   HAL_Delay(5000);
      //float pos = positions[i] * (8.0f / 360.0f);
      float pos0 = pos0_in_turn * (8.0f / 360.0f);
      float pos1 = pos1_in_turn * (8.0f / 360.0f);
      float pos2 = pos2_in_turn * (8.0f / 360.0f);
      //printf("Sending position: %f\n", pos);
      send_position(NODE_ID_0, pos0);
-     HAL_Delay(1000);
+     HAL_Delay(5000);
      //send_position(NODE_ID_1, pos1);
      //HAL_Delay(1000);
      //send_position(NODE_ID_2, pos2);
      //HAL_Delay(1000);
      //HAL_Delay(5000);
+	   if (request_encoder_pos_estimates(NODE_ID_0, &est_pos0, 50) == 0)
+	   {
+	       printf("[node0] pos=%.3f\n\r", est_pos0);
+	   }
+	   else
+	   {
+	       printf("[node0] encoder pos estimate timeout/error\n\r");
+	   }
+
+	   HAL_Delay(5000);
      send_position(NODE_ID_0, 0);
-     HAL_Delay(1000);
+     HAL_Delay(5000);
      //send_position(NODE_ID_1, 0);
      //HAL_Delay(1000);
      //send_position(NODE_ID_2, 0);
